@@ -1,0 +1,5 @@
+
+
+class LogoutPage():
+
+    pass

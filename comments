@@ -1,0 +1,100 @@
+1.
+WARNING:urllib3.connectionpool:Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProtocolError('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))': /wd/hub/session/c6bdba91-106a-42d9-8205-52f15ffe313d/window/rect
+手机的尺寸是：  {'width': 640, 'height': 1024}
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/urllib3/connectionpool.py", line 672, in urlopen
+    chunked=chunked,
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/urllib3/connectionpool.py", line 421, in _make_request
+    six.raise_from(e, None)
+  File "<string>", line 3, in raise_from
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/urllib3/connectionpool.py", line 416, in _make_request
+    httplib_response = conn.getresponse()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 1344, in getresponse
+    response.begin()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 306, in begin
+    version, status, reason = self._read_status()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 267, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socket.py", line 589, in readinto
+    return self._sock.recv_into(b)
+ConnectionResetError: [Errno 54] Connection reset by peer
+
+断点遇到这个报错
+
+2.try放在循环外面，最后找到元素也会执行Exception，从打印结果中看到输出信息，没有debug，明天看
+0412
+#看错了，但是try在循环外面貌似不会走这个exception，毕竟循环应该不会出错
+
+1.进入试音页面也找到了试音按钮，但是点击没有进入试音环节
+-0413
+#模拟器的问题，换真机
+2.动画过程中appium函数不能执行，uiautomator也获取不到元素
+-0414
+
+需求：通过知道有几个选项点击几次，根据结构找到爸爸然后知道儿子个数
+
+1>.通过爸爸找儿子元素的个数
+case1
+百度到可以用size的方法
+"driver.findElement(By.name("layouttemplate_LinearLayout")).findElements(By.className("android.widget.LinearLayout")).size();"
+但是size返回的是一个字典，里面包含的是坐标位置并不是个数，可是这个帖子的人说能获取个数，然后迷失在size这个属性里。
+
+case2：
+case1这个人提到了uiautomator中的.getChildCount()，uiautomator这个Android的测试工具，我的appium平台用的是uiautomator2就没有在意，但是发现
+drvier是有这个方法的find_element_by_android_uiautomator
+
+        parent = self.find_Element('xpath','//*[@class=android.widget.LinearLayout]',None)
+        childs = parent.find_elements_by_android_uiautomator('className("android.view.ViewGroup")')
+
+打印parent、childs 程序报错，说[@class=android.widget.LinearLayout] dont exist Dom anymore
+说parent已经不在了,明明就在屏幕上呢
+最开始以为是parent方法不对，单独打印parent就没有问题，childs用到就报错。
+之后发现class=android.widget.LinearLayout 这个元素在界面上很多，他定位到的是第一个出现的，并不是承载着我需要的儿子的爸爸。
+修改后：
+
+        parent = self.find_Element('id','com.liulishuo.kion:id/ll_choice_root',None)
+        childs = parent.find_elements_by_class_name("android.view.ViewGroup")
+
+childs返回是一个元素数组
+知道了儿子个数，然后循环点击
+
+2>.循环点击
+case1：
+for i in childs:
+    childs[i].find_element('id',self.match_tv)
+报错：
+TypeError: list indices must be integers or slices, not WebElement
+chids里放的已经是元素，不需要再找
+
+case2:
+ for i in childs:
+      i.click()
+
+ OK
+
+3>.超出一屏的选项滑动选择
+done
+
+
+2.通过单页面传起来练习题1.1的做题流程，但是觉得我现在这个不是PO模式，明天再看看视频怎么用unitest完成
+-0416
+
+
+1.@classmethod 修饰符 alerpage这个文件是不同弹框用class 还是用def？
+2.就知道不能随便删代码，之前写的一个对questiontype的方法 替换构造方法之后删掉了，想抄作业都不行。
+3。
+E/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/unittest/case.py:656: ResourceWarning: unclosed <socket.socket fd=8, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 54703), raddr=('127.0.0.1', 4723)>
+  outcome.errors.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+#有的时候会出这样的错误，再run就好了
+4.很多地方用sleep，总觉得不是好事。
+#隐私等待貌似是有用的 但是具体到做题流程的时候 还是存在问题
+5.模拟诊断卡主了，带动画的大概都卡主了，元素找到了但是就是不去点击。D
+#通过点击坐标方式完成了主动停止录音功能，但是仍无法解决模拟诊断题型中出现元素之后click不执行，选项题根本无法通过元素来定位
+
+-0420
+
+1.除了练习题，剩下的题型在做题过程中均有东西在动，导致findelementclick不执行，但是不也不清楚是不是Android自己有问题，目前在配置iOS环境
+2.练习题完成之后生成报告返回为fasle，会再次进入流程，但是UI上并没有动并且过了一会找到了生成报告 有bug
+3.又陷入了路径的问题，在page路径下的截图会在kion-ui下创建文件，在test下的执行截图会在test下创建文件夹
+-0422
